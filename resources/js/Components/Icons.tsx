@@ -299,6 +299,13 @@ export const VolumeIcon = (p: IconProps) => (
     </Svg>
 );
 
+export const PinIcon = (p: IconProps) => (
+    <Svg {...p}>
+        <path d="M12 21v-6" />
+        <path d="M8.5 3h7l-1 6.5 2.5 2v1.5H7V11.5l2.5-2z" />
+    </Svg>
+);
+
 export const GridIcon = (p: IconProps) => (
     <Svg {...p}>
         <rect x="4" y="4" width="7" height="7" rx="1.5" />

@@ -86,29 +86,27 @@ class Post extends Model
      */
     public function scopeVisibleTo(Builder $q, ?User $me): Builder
     {
-        return $q->where(function (Builder $w) use ($me) {
-            $friendIds = $me ? $me->friendIds() : [];
+        $friendIds = $me ? $me->friendIds() : [];
 
-            $w->where(function (Builder $v) use ($me, $friendIds) {
-                // own posts
-                if ($me) {
-                    $v->where('user_id', $me->id);
-                }
-                // public posts
-                $v->orWhere('visibility', 'public');
-                // friends-only posts from friends
-                if ($me && count($friendIds)) {
-                    $v->orWhere(function ($f) use ($friendIds) {
-                        $f->where('visibility', 'friends')->whereIn('user_id', $friendIds);
-                    });
-                    // custom posts where user is included
-                    $v->orWhere(function ($c) use ($friendIds, $me) {
-                        $c->where('visibility', 'custom')
-                            ->whereIn('user_id', $friendIds)
-                            ->whereHas('visibilityUsers', fn ($u) => $u->where('user_id', $me->id));
-                    });
-                }
-            });
+        $q->where(function (Builder $w) use ($me, $friendIds) {
+            // own posts (user posts, group posts by me, or page posts I authored context)
+            if ($me) {
+                $w->where('user_id', $me->id);
+            }
+            // public posts
+            $w->orWhere('visibility', 'public');
+            // friends-only posts from friends
+            if ($me && count($friendIds)) {
+                $w->orWhere(function ($f) use ($friendIds) {
+                    $f->where('visibility', 'friends')->whereIn('user_id', $friendIds);
+                });
+                // custom posts where user is included
+                $w->orWhere(function ($c) use ($friendIds, $me) {
+                    $c->where('visibility', 'custom')
+                        ->whereIn('user_id', $friendIds)
+                        ->whereHas('visibilityUsers', fn ($u) => $u->where('user_id', $me->id));
+                });
+            }
 
             // followed pages' posts (any visibility)
             if ($me) {
@@ -117,11 +115,14 @@ class Post extends Model
                 });
                 // joined groups' posts
                 $w->orWhereHas('group', function ($g) use ($me) {
-                    $g->whereHas('members', fn ($m) => $m->where('user_id', $me->id)->where('status', 'active'));
+                    $g->whereHas('members', fn ($m) => $m->where('group_members.user_id', $me->id)->where('group_members.status', 'active'));
                 });
             }
-        })->whereHas('user', function ($u) {
-            $u->where('status', 'active');
+        });
+
+        return $q->where(function (Builder $w) {
+            // author must be active, unless it's a page/group post
+            $w->whereNull('user_id')->orWhereHas('user', fn ($u) => $u->where('status', 'active'));
         });
     }
 }
