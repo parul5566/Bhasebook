@@ -1,0 +1,64 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/inter/800.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        @apply antialiased;
+    }
+    body {
+        @apply bg-bhas-50 text-slate-900 dark:bg-bhas-950 dark:text-slate-100;
+    }
+}
+
+@layer components {
+    .bhas-card {
+        @apply rounded-2xl bg-white shadow-card dark:bg-bhas-900/70;
+    }
+    .bhas-btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-bhas-500 disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+    .bhas-btn-primary {
+        @apply bhas-btn bg-bhas-600 text-white hover:bg-bhas-700 active:bg-bhas-800;
+    }
+    .bhas-btn-ghost {
+        @apply bhas-btn bg-bhas-100 text-bhas-800 hover:bg-bhas-200 dark:bg-bhas-800 dark:text-bhas-100 dark:hover:bg-bhas-700;
+    }
+    .bhas-btn-danger {
+        @apply bhas-btn bg-rose-600 text-white hover:bg-rose-700;
+    }
+    .bhas-input {
+        @apply w-full rounded-xl border-0 bg-bhas-100 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-bhas-500 dark:bg-bhas-900 dark:text-slate-100 dark:focus:bg-bhas-900 dark:focus:ring-bhas-400;
+    }
+    .bhas-label {
+        @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400;
+    }
+    .bhas-icon-btn {
+        @apply inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-bhas-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-bhas-800 dark:hover:text-slate-100;
+    }
+    .bhas-scroll-x {
+        @apply flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+    }
+}
+
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .snap-y-mandatory {
+        scroll-snap-type: y mandatory;
+    }
+    .snap-start-always {
+        scroll-snap-align: start always;
+    }
+}
