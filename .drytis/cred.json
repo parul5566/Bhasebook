@@ -1,0 +1,13 @@
+{
+    "preview_url": "https://bhasebook-umcq4u.drytis.dev/",
+    "accounts": [
+        {
+            "role": "admin",
+            "email": "admin@bhasebook.test",
+            "password": "Admin@12345",
+            "verified_at": "2026-09-03T00:30:00Z",
+            "verified_by": "leader",
+            "notes": "seeded via AdminUserSeeder"
+        }
+    ]
+}

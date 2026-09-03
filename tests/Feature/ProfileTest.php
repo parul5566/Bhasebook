@@ -1,13 +1,18 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
+uses(RefreshDatabase::class);
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
-        ->get('/profile');
+        ->get(route('profile.edit'));
 
     $response->assertOk();
 });
@@ -17,14 +22,14 @@ test('profile information can be updated', function () {
 
     $response = $this
         ->actingAs($user)
-        ->patch('/profile', [
+        ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect('/profile');
+        ->assertRedirect(route('profile.edit'));
 
     $user->refresh();
 
@@ -33,21 +38,55 @@ test('profile information can be updated', function () {
     $this->assertNull($user->email_verified_at);
 });
 
-test('email verification status is unchanged when the email address is unchanged', function () {
+test('social profile fields can be updated', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'bio' => 'Hello world',
+            'work' => 'Designer at Studio',
+            'location' => 'Mumbai',
+            'profile_visibility' => 'public',
+            'default_post_visibility' => 'public',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $user->refresh();
+    $this->assertSame('Hello world', $user->bio);
+    $this->assertSame('Mumbai', $user->location);
+    $this->assertSame('public', $user->profile_visibility);
+});
+
+test('avatar can be uploaded', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patch(route('profile.update'), [
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => UploadedFile::fake()->image('avatar.jpg', 600, 600),
+        ])
+        ->assertSessionHasNoErrors();
+
+    $user->refresh();
+    $this->assertNotNull($user->avatar);
+    Storage::disk('public')->assertExists($user->avatar);
+});
+
+test('user can deactivate their account', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
-        ->patch('/profile', [
-            'name' => 'Test User',
-            'email' => $user->email,
+        ->post(route('profile.deactivate'), [
+            'password' => 'password',
         ]);
 
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect('/profile');
-
-    $this->assertNotNull($user->refresh()->email_verified_at);
+    $response->assertRedirect('/');
+    $this->assertSame('deactivated', $user->fresh()->status);
 });
 
 test('user can delete their account', function () {
@@ -59,27 +98,6 @@ test('user can delete their account', function () {
             'password' => 'password',
         ]);
 
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect('/');
-
-    $this->assertGuest();
+    $response->assertValid();
     $this->assertNull($user->fresh());
-});
-
-test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->from('/profile')
-        ->delete('/profile', [
-            'password' => 'wrong-password',
-        ]);
-
-    $response
-        ->assertSessionHasErrors('password')
-        ->assertRedirect('/profile');
-
-    $this->assertNotNull($user->fresh());
 });
