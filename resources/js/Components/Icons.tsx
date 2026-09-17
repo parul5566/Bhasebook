@@ -43,6 +43,21 @@ export const StoreIcon = (p: IconProps) => (
     </Svg>
 );
 
+export const HashIcon = (p: IconProps) => (
+    <Svg {...p}>
+        <line x1="4" y1="9" x2="20" y2="9" />
+        <line x1="4" y1="15" x2="20" y2="15" />
+        <line x1="10" y1="3" x2="8" y2="21" />
+        <line x1="16" y1="3" x2="14" y2="21" />
+    </Svg>
+);
+
+export const PaperclipIcon = (p: IconProps) => (
+    <Svg {...p}>
+        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+    </Svg>
+);
+
 export const GroupIcon = (p: IconProps) => (
     <Svg {...p}>
         <circle cx="9" cy="8.5" r="3.2" />

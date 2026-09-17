@@ -12,6 +12,11 @@ class FriendController extends Controller
 {
     public function index(Request $request)
     {
+        return Inertia::render('Friends/Index', $this->indexData($request));
+    }
+
+    public function indexData(Request $request): array
+    {
         $me = $request->user();
         $friendIds = $me->friendIds();
 
@@ -73,13 +78,13 @@ class FriendController extends Controller
                 ->map(fn ($u) => array_merge(ProfileController::basicUser($u), ['mutual' => 0]));
         }
 
-        return Inertia::render('Friends/Index', [
+        return [
             'friends' => $friends,
             'received' => $received,
             'sent' => $sent,
             'suggestions' => $suggestions,
             'filter' => $request->string('tab', 'all'),
-        ]);
+        ];
     }
 
     public function request(Request $request, User $user)
@@ -128,9 +133,14 @@ class FriendController extends Controller
 
     public function blockedIndex(Request $request)
     {
+        return Inertia::render('Settings/Blocked', $this->blockedIndexData($request));
+    }
+
+    public function blockedIndexData(Request $request): array
+    {
         $blocked = \App\Models\Block::where('user_id', $request->user()->id)
             ->with('blocked:id,name,avatar')->get()
             ->map(fn ($b) => ProfileController::basicUser($b->blocked));
-        return Inertia::render('Settings/Blocked', ['blocked' => $blocked]);
+        return ['blocked' => $blocked];
     }
 }

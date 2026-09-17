@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { UserAvatar, type BasicUser } from '@/Pages/Profile/Show';
 import {
-    BookmarkIcon, CommentIcon, GlobeIcon, LockIcon, MapPinIcon, MoreIcon,
+    BookmarkIcon, CommentIcon, FlagIcon, GlobeIcon, LockIcon, MapPinIcon, MoreIcon,
     SendIcon, ShareIcon, SmileyIcon, TrashIcon, EditIcon, UsersIcon, PinIcon,
 } from '@/Components/Icons';
 
@@ -77,6 +77,7 @@ export default function PostCard({ post: initial, onDeleted }: { post: Serialize
     const [commentsOpen, setCommentsOpen] = useState(false);
     const [editing, setEditing] = useState(false);
     const [editText, setEditText] = useState(post.content ?? '');
+    const [reporting, setReporting] = useState(false);
     const reactTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => () => { if (reactTimer.current) clearTimeout(reactTimer.current); }, []);
@@ -196,6 +197,11 @@ export default function PostCard({ post: initial, onDeleted }: { post: Serialize
                                             <TrashIcon className="h-4 w-4" /> Delete
                                         </button>
                                     </>
+                                )}
+                                {!post.can_edit && (
+                                    <button type="button" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/30" onClick={() => { setMenuOpen(false); setReporting(true); }}>
+                                        <FlagIcon className="h-4 w-4" /> Report post
+                                    </button>
                                 )}
                             </div>
                         </>
@@ -348,7 +354,74 @@ export default function PostCard({ post: initial, onDeleted }: { post: Serialize
             </div>
 
             {commentsOpen && <CommentsSection postId={post.id} />}
+            {reporting && <ReportModal reportableType="post" reportableId={post.id} onClose={() => setReporting(false)} />}
         </article>
+    );
+}
+
+export const REPORT_REASONS = [
+    ['spam', 'Spam or misleading'],
+    ['harassment', 'Harassment or bullying'],
+    ['nudity', 'Nudity or sexual content'],
+    ['violence', 'Violence or dangerous acts'],
+    ['misinformation', 'False information'],
+    ['hate', 'Hate speech'],
+    ['other', 'Something else'],
+] as const;
+
+export function ReportModal({ reportableType, reportableId, onClose }: { reportableType: string; reportableId: number; onClose: () => void }) {
+    const [reason, setReason] = useState('spam');
+    const [details, setDetails] = useState('');
+    const [busy, setBusy] = useState(false);
+    const [done, setDone] = useState(false);
+
+    const submit = async () => {
+        setBusy(true);
+        try {
+            const res = await fetch(route('reports.store'), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({ reportable_type: reportableType, reportable_id: reportableId, reason, details: details || null }),
+            });
+            if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message ?? 'Failed');
+            setDone(true);
+            setTimeout(onClose, 900);
+        } catch {
+            setDone(false);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+            <div className="bhas-card w-full max-w-md p-5" onClick={(e) => e.stopPropagation()}>
+                {done ? (
+                    <p className="py-6 text-center text-sm font-bold text-emerald-600">Report submitted ✓ Thank you.</p>
+                ) : (
+                    <>
+                        <h3 className="mb-3 text-lg font-bold">Report this {reportableType}</h3>
+                        <div className="space-y-1">
+                            {REPORT_REASONS.map(([value, label]) => (
+                                <label key={value} className="flex cursor-pointer items-center gap-2 rounded-lg p-2 text-sm hover:bg-bhas-50 dark:hover:bg-bhas-800">
+                                    <input type="radio" name="reason" value={value} checked={reason === value} onChange={() => setReason(value)} className="h-4 w-4" />
+                                    {label}
+                                </label>
+                            ))}
+                        </div>
+                        <textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={2} maxLength={1000} placeholder="Anything else we should know? (optional)" className="bhas-input mt-3 resize-none text-sm" />
+                        <div className="mt-3 flex justify-end gap-2">
+                            <button type="button" className="bhas-btn-ghost" onClick={onClose}>Cancel</button>
+                            <button type="button" className="bhas-btn-primary" onClick={submit} disabled={busy}>{busy ? 'Sending…' : 'Submit report'}</button>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
     );
 }
 

@@ -10,11 +10,6 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-function acting() {
-    $user = \App\Models\User::factory()->create(['email_verified_at' => now()]);
-    test()->actingAs($user);
-    return $user;
-}
 
 test('user can create a text post with visibility', function () {
     $me = acting();

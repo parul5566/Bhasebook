@@ -3,6 +3,8 @@ import { Head } from '@inertiajs/react';
 import Composer from '@/Components/Composer';
 import InfiniteFeed from '@/Components/InfiniteFeed';
 import LeftSidebar from '@/Components/LeftSidebar';
+import StoryBar from '@/Components/StoryBar';
+import Recommendations from '@/Components/Recommendations';
 import { SparkIcon } from '@/Components/Icons';
 import { usePage } from '@inertiajs/react';
 import { UserAvatar } from '@/Pages/Profile/Show';
@@ -16,10 +18,12 @@ export default function Dashboard() {
                     <LeftSidebar />
                 </aside>
                 <section className="space-y-4">
+                    <StoryBar />
                     <Composer />
                     <InfiniteFeed />
                 </section>
                 <aside className="hidden space-y-4 lg:block">
+                    <Recommendations />
                     <div className="bhas-card p-4">
                         <div className="mb-3 flex items-center gap-2">
                             <SparkIcon className="h-5 w-5 text-bhas-500" />

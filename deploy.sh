@@ -1,26 +1,6 @@
-#!/usr/bin/env bash
-set -e
-
-cd /workspace
-
-# Install dependencies (skipped when already present)
-if [ ! -d vendor ]; then
-  composer install --no-interaction --prefer-dist --no-progress
-fi
-if [ ! -d node_modules ]; then
-  npm ci --no-progress || npm install --no-progress
-fi
-
-# Build frontend assets
-npm run build
-
-# Link public storage
-php artisan storage:link || true
-
-# Migrate database
-php artisan migrate --force
-
-# Optimise
-php artisan config:cache || true
-php artisan route:cache || true
-php artisan view:cache || true
+# Phase 1 — Scaffold complete
+- Laravel 12 + Inertia/React (TS) + Tailwind 3 (Breeze: react --typescript --pest --dark)
+- Env keys via backend (APP/DB/SESSION/QUEUE/CACHE/FILESYSTEM/MAIL + APP_KEY secret)
+- Design system: bhas-* palette, Inter (fontsource), bhas-card/btn/input classes, custom Icons.tsx set, original logo, ThemeToggle light/dark/system
+- App shell: TopBar (search, bell, messenger, theme, avatar menu), MobileNav bottom tabs, GuestLayout branded
+- MySQL migrated; setup script registered (backend-managed)

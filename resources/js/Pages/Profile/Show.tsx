@@ -8,7 +8,7 @@ export type BasicUser = {
     id: number;
     name: string;
     avatar_url: string | null;
-    hue: number;
+    hue?: number;
 };
 
 export function UserAvatar({ user, size = 40 }: { user: BasicUser; size?: number }) {

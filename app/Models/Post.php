@@ -10,6 +10,11 @@ class Post extends Model
 {
     use SoftDeletes;
 
+    public function scopeSearch(Builder $q, ?string $term): Builder
+    {
+        return $q->when($term !== null && $term !== '', fn ($w) => $w->where('content', 'like', '%'.$term.'%'));
+    }
+
     protected $fillable = [
         'user_id', 'page_id', 'group_id', 'shared_post_id', 'content', 'type',
         'visibility', 'feeling', 'location', 'link_url', 'link_title', 'link_description',

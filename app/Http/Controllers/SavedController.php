@@ -21,8 +21,8 @@ class SavedController extends Controller
             ->map(fn ($s) => $s->savable)
             ->filter();
 
-        return Inertia::render('Posts/Saved', [
+        return [
             'posts' => PostController::serializePosts($saves, $me),
-        ]);
+        ];
     }
 }

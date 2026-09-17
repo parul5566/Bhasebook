@@ -8,7 +8,7 @@ class Conversation extends Model
 {
     protected $fillable = ['title', 'avatar_path', 'is_group', 'created_by', 'last_activity_at'];
 
-    protected $casts = ['last_activity_at' => 'datetime'];
+    protected $casts = ['last_activity_at' => 'datetime', 'is_group' => 'boolean'];
 
     public function participants()
     {

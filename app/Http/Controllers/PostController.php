@@ -493,11 +493,11 @@ class PostController extends Controller
                 ->withCount(['reactions as reaction_count', 'comments as comment_count'])
                 ->latest()->limit(30)->get();
         }
-        return \Inertia\Inertia::render('Posts/Hashtag', [
+        return [
             'tag' => $tag,
             'count' => $hashtag?->posts_count ?? 0,
             'posts' => self::serializePosts($posts, $me),
-        ]);
+        ];
     }
 
     public function memories(Request $request)
@@ -512,9 +512,9 @@ class PostController extends Controller
             ->withCount(['reactions as reaction_count', 'comments as comment_count'])
             ->latest()->limit(20)->get();
 
-        return \Inertia\Inertia::render('Posts/Memories', [
+        return [
             'posts' => self::serializePosts($posts, $me),
-        ]);
+        ];
     }
 
     // ---------- Helpers ----------

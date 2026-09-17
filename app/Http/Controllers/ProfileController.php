@@ -12,6 +12,11 @@ class ProfileController extends Controller
 {
     public function show(Request $request, string $user)
     {
+        return Inertia::render('Profile/Show', $this->showData($request, $user));
+    }
+
+    public function showData(Request $request, string $user): array
+    {
         $me = $request->user();
         $profileUser = $user === 'me'
             ? $me
@@ -29,10 +34,11 @@ class ProfileController extends Controller
             || $me->is_admin;
 
         if (! $canViewFull) {
-            return Inertia::render('Profile/Restricted', [
+            return [
+                'restricted' => true,
                 'profileUser' => $this->basicUser($profileUser),
                 'relation' => $this->relation($me, $profileUser),
-            ])->withViewData(['status' => 200]);
+            ];
         }
 
         $friends = User::whereIn('id', $friendIds)->limit(9)->get()->map(fn ($u) => $this->basicUser($u));
@@ -57,7 +63,8 @@ class ProfileController extends Controller
             ->limit(10)
             ->get();
 
-        return Inertia::render('Profile/Show', [
+        return [
+            'restricted' => false,
             'profileUser' => array_merge($this->basicUser($profileUser), [
                 'cover_url' => $profileUser->cover_url,
                 'bio' => $profileUser->bio,
@@ -73,9 +80,8 @@ class ProfileController extends Controller
             'relation' => $this->relation($me, $profileUser),
             'friends' => $friends,
             'posts' => \App\Http\Controllers\PostController::serializePosts($posts, $me),
-        ]);
+        ];
     }
-
     public function editSettings(Request $request)
     {
         $me = $request->user();

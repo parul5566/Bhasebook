@@ -44,7 +44,16 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function acting()
 {
-    // ..
+    $user = \App\Models\User::factory()->create(['email_verified_at' => now()]);
+    test()->actingAs($user);
+    return $user;
+}
+
+function admin()
+{
+    $admin = \App\Models\User::factory()->create(['email_verified_at' => now(), 'is_admin' => true]);
+    test()->actingAs($admin);
+    return $admin;
 }

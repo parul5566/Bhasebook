@@ -27,6 +27,11 @@ class Page extends Model
         return $this->hasMany(Post::class);
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function getAvatarUrlAttribute(): ?string
     {
         return $this->avatar ? asset('storage/'.$this->avatar) : null;

@@ -12,7 +12,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Services\AiService::class, function () {
+            return new \App\Services\AiService(
+                (string) config('services.openai.key', ''),
+                (string) config('services.openai.base_url', 'https://api.openai.com/v1'),
+                (string) config('services.openai.model', 'gpt-4o-mini'),
+            );
+        });
     }
 
     /**
@@ -21,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Admin gate — used by the /api/v1/admin routes (mobile app).
+        \Illuminate\Support\Facades\Gate::define('admin', fn ($user) => (bool) $user->is_admin);
 
         \Inertia\Inertia::share('auth.user', fn () => auth()->check()
             ? [

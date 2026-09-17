@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import { UserAvatar } from '@/Pages/Profile/Show';
-import { CameraIcon, MapPinIcon, PhotoStackIcon, PollIcon, SmileyIcon, TagUserIcon, VideoCamIcon, XIcon } from '@/Components/Icons';
+import { CameraIcon, MapPinIcon, PhotoStackIcon, PollIcon, SmileyIcon, SparkIcon, TagUserIcon, VideoCamIcon, XIcon } from '@/Components/Icons';
 
 const FEELINGS = ['happy 😊', 'sad 😢', 'excited 🤩', 'tired 😴', 'grateful 🙏', 'loved ❤️', 'motivated 💪', 'silly 🤪', 'thoughtful 🤔', 'celebrating 🎉'];
 const VISIBILITIES = [
@@ -11,7 +11,7 @@ const VISIBILITIES = [
     { key: 'private', label: 'Only me' },
 ] as const;
 
-export default function Composer({ defaultVisibility = 'friends' }: { defaultVisibility?: string }) {
+export default function Composer({ defaultVisibility = 'friends', groupId, pageId, contextName }: { defaultVisibility?: string; groupId?: number; pageId?: number; contextName?: string }) {
     const me = usePage().props.auth.user as unknown as { id: number; name: string; avatar_url: string | null; hue?: number };
     const [open, setOpen] = useState(false);
     const [text, setText] = useState('');
@@ -22,6 +22,7 @@ export default function Composer({ defaultVisibility = 'friends' }: { defaultVis
     const [visibility, setVisibility] = useState<string>(defaultVisibility);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
+    const [aiBusy, setAiBusy] = useState(false);
     const fileRef = useRef<HTMLInputElement>(null);
 
     const isPoll = pollOptions.length > 0;
@@ -43,6 +44,8 @@ export default function Composer({ defaultVisibility = 'friends' }: { defaultVis
             body.append('visibility', visibility);
             if (feeling) body.append('feeling', feeling);
             if (location) body.append('location', location);
+            if (groupId) body.append('group_id', String(groupId));
+            if (pageId) body.append('page_id', String(pageId));
             files.slice(0, 10).forEach((f) => body.append('media[]', f));
             pollOptions.filter((o) => o.trim()).forEach((o) => body.append('poll_options[]', o));
             const res = await fetch(route('posts.store'), {
@@ -65,6 +68,36 @@ export default function Composer({ defaultVisibility = 'friends' }: { defaultVis
             setError(e instanceof Error ? e.message : 'Failed to post.');
         } finally {
             setBusy(false);
+        }
+    };
+
+    const runAi = async (mode: 'ideas' | 'caption' | 'rewrite' | 'hashtags') => {
+        if (aiBusy) return;
+        const topic = text.trim();
+        if (mode !== 'ideas' && !topic) { setError('Type something first, then let AI polish it.'); return; }
+        setAiBusy(true);
+        setError('');
+        try {
+            const res = await fetch(route('ai.assist'), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({ mode, topic: topic || 'everyday life and what makes you smile' }),
+            });
+            if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message ?? 'AI is taking a break — try again.');
+            const data = await res.json();
+            setText((prev) => {
+                if (mode === 'ideas') return prev + (prev ? '\n' : '') + data.result;
+                if (mode === 'hashtags') return prev + ' ' + data.result;
+                return data.result;
+            });
+        } catch (e) {
+            setError(e instanceof Error ? e.message : 'AI request failed.');
+        } finally {
+            setAiBusy(false);
         }
     };
 
@@ -101,7 +134,7 @@ export default function Composer({ defaultVisibility = 'friends' }: { defaultVis
                 <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-16" onClick={() => !busy && setOpen(false)}>
                     <div className="bhas-card w-full max-w-xl p-4" onClick={(e) => e.stopPropagation()}>
                         <div className="mb-3 flex items-center justify-between">
-                            <h3 className="text-lg font-bold">Create post</h3>
+                            <h3 className="text-lg font-bold">{contextName ? `Post to ${contextName}` : 'Create post'}</h3>
                             <button type="button" className="bhas-icon-btn" onClick={() => setOpen(false)} aria-label="Close">
                                 <XIcon className="h-5 w-5" />
                             </button>
@@ -182,12 +215,25 @@ export default function Composer({ defaultVisibility = 'friends' }: { defaultVis
                             <button type="button" className="bhas-icon-btn !h-9 !w-9" title="Poll" onClick={() => setPollOptions((o) => (o.length ? [] : ['', '']))}>
                                 <PollIcon className="h-5 w-5 text-bhas-600" />
                             </button>
-                            <div className="ml-auto flex items-center gap-2">
-                                <label className="text-xs font-bold uppercase text-slate-400">Post to</label>
-                                <select value={visibility} onChange={(e) => setVisibility(e.target.value)} className="bhas-input !w-auto !py-1.5 text-xs">
-                                    {VISIBILITIES.map((v) => <option key={v.key} value={v.key}>{v.label}</option>)}
-                                </select>
+                            <div className="group relative">
+                                <button type="button" className="bhas-icon-btn !h-9 !w-9" title="AI assistant" onClick={() => runAi('caption')} disabled={aiBusy}>
+                                    <SparkIcon className={`h-5 w-5 text-violet-500 ${aiBusy ? 'animate-pulse' : ''}`} />
+                                </button>
+                                <div className="absolute bottom-11 left-0 z-20 hidden w-44 rounded-xl bg-white p-1 shadow-pop group-hover:block dark:bg-bhas-800">
+                                    <button type="button" className="block w-full rounded-lg px-3 py-1.5 text-left text-xs font-semibold hover:bg-bhas-50 dark:hover:bg-bhas-700" onClick={() => runAi('ideas')}>✨ Ideas for a post</button>
+                                    <button type="button" className="block w-full rounded-lg px-3 py-1.5 text-left text-xs font-semibold hover:bg-bhas-50 dark:hover:bg-bhas-700" onClick={() => runAi('caption')}>✨ Write a caption</button>
+                                    <button type="button" className="block w-full rounded-lg px-3 py-1.5 text-left text-xs font-semibold hover:bg-bhas-50 dark:hover:bg-bhas-700" onClick={() => runAi('rewrite')}>✨ Improve my text</button>
+                                    <button type="button" className="block w-full rounded-lg px-3 py-1.5 text-left text-xs font-semibold hover:bg-bhas-50 dark:hover:bg-bhas-700" onClick={() => runAi('hashtags')}>✨ Suggest hashtags</button>
+                                </div>
                             </div>
+                            {groupId ? null : pageId ? null : (
+                                <div className="ml-auto flex items-center gap-2">
+                                    <label className="text-xs font-bold uppercase text-slate-400">Post to</label>
+                                    <select value={visibility} onChange={(e) => setVisibility(e.target.value)} className="bhas-input !w-auto !py-1.5 text-xs">
+                                        {VISIBILITIES.map((v) => <option key={v.key} value={v.key}>{v.label}</option>)}
+                                    </select>
+                                </div>
+                            )}
                         </div>
 
                         {error && <p className="mt-2 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-900/40 dark:text-rose-300">{error}</p>}
