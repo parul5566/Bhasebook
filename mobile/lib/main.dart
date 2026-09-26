@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'app_router.dart';
+import 'services/push_service.dart';
 import 'state/auth_state.dart';
 import 'theme/app_theme.dart';
 
@@ -18,6 +19,8 @@ class BhasebookApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final router = buildRouter(auth);
+    // Push (FCM) — degrades silently when Firebase isn't configured.
+    PushService.init(context);
     return ChangeNotifierProvider.value(
       value: auth,
       child: MaterialApp.router(

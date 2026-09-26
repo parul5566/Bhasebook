@@ -67,6 +67,9 @@ class PageController extends Controller
         $page->roles()->attach($me->id, ['role' => 'admin']);
         $page->followers()->attach($me->id);
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Page created.', 'ok' => true, 'id' => $page->id]);
+        }
         return redirect()->route('pages.show', ['page' => $page->id]);
     }
 
@@ -111,9 +114,15 @@ class PageController extends Controller
         $me = $request->user();
         if ($page->followers()->where('user_id', $me->id)->exists()) {
             $page->followers()->detach($me->id);
-            return back()->with('status', 'Unfollowed.');
+            if ($request->expectsJson()) {
+            return response()->json(['message' => 'Unfollowed.', 'ok' => true]);
+        }
+        return back()->with('status', 'Unfollowed.');
         }
         $page->followers()->attach($me->id);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => "Following {$page->name}.", 'ok' => true]);
+        }
         return back()->with('status', "Following {$page->name}.");
     }
 
@@ -128,6 +137,9 @@ class PageController extends Controller
         $target = User::findOrFail($data['user_id']);
         $page->roles()->syncWithoutDetaching([$target->id => ['role' => $data['role']]]);
         SocialService::notify($target, $me, 'page_post', 'page', $page, "added you as {$data['role']} of {$page->name}");
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back();
     }
 
@@ -149,6 +161,9 @@ class PageController extends Controller
             }
         }
         $page->update(array_filter($data, fn ($v) => $v !== null));
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back();
     }
 

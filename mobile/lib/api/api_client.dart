@@ -215,4 +215,13 @@ class ApiClient {
     }
     return decoded;
   }
+
+  /// Multipart PATCH (profile avatar/cover) — POSTs with `_method=PATCH`,
+  /// the Laravel way of tunneling PATCH through multipart.
+  Future<dynamic> uploadPatch(
+    String path,
+    List<http.MultipartFile> files, {
+    Map<String, String> fields = const {},
+  }) =>
+      upload(path, files, fields: {...fields, '_method': 'PATCH'});
 }

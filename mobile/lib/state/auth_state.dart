@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
+import '../services/push_service.dart';
 
 /// Global auth state — drives router redirects (login vs app shell).
 class AuthState extends ChangeNotifier {
@@ -31,6 +32,8 @@ class AuthState extends ChangeNotifier {
       res['token'] as String,
       ApiUser.fromJson((res['user'] as Map).cast<String, dynamic>()),
     );
+    // Register the FCM token for push notifications.
+    PushService.registerWithBackend();
   }
 
   Future<void> register(String name, String email, String password) async {
@@ -45,7 +48,12 @@ class AuthState extends ChangeNotifier {
       res['token'] as String,
       ApiUser.fromJson((res['user'] as Map).cast<String, dynamic>()),
     );
+    PushService.registerWithBackend();
   }
 
-  Future<void> logout() => ApiClient.instance.logout();
+  Future<void> logout() async {
+    // Best-effort: drop this device's push token from the backend.
+    await PushService.unregisterFromBackend();
+    await ApiClient.instance.logout();
+  }
 }

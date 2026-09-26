@@ -79,6 +79,9 @@ class AdminController extends Controller
                 break;
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Done.', 'ok' => true]);
+        }
         return back()->with('status', 'Done.');
     }
 
@@ -123,6 +126,9 @@ class AdminController extends Controller
                 break;
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Report handled.', 'ok' => true]);
+        }
         return back()->with('status', 'Report handled.');
     }
 
@@ -134,7 +140,10 @@ class AdminController extends Controller
 
         if ($action === 'dismiss') {
             $flag->update(['reviewed_at' => now()]);
-            return back()->with('status', 'Flag dismissed.');
+            if ($request->expectsJson()) {
+            return response()->json(['message' => 'Flag dismissed.', 'ok' => true]);
+        }
+        return back()->with('status', 'Flag dismissed.');
         }
 
         $target = $flag->flaggable;
@@ -153,6 +162,9 @@ class AdminController extends Controller
         }
         $flag->update(['reviewed_at' => now()]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Action taken.', 'ok' => true]);
+        }
         return back()->with('status', 'Action taken.');
     }
 
@@ -166,6 +178,9 @@ class AdminController extends Controller
         ]);
         foreach ($data['settings'] as $key => $value) {
             Setting::set($key, $value === null ? null : (string) $value);
+        }
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Settings saved.', 'ok' => true]);
         }
         return back()->with('status', 'Settings saved.');
     }

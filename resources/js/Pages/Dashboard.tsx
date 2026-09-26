@@ -18,6 +18,13 @@ export default function Dashboard() {
                     <LeftSidebar />
                 </aside>
                 <section className="space-y-4">
+                    <h1 className="sr-only">Home</h1>
+                    <div className="bhas-card overflow-hidden bg-gradient-to-r from-bhas-500 via-purple-500 to-fuchsia-500 p-[1px] motion-safe:animate-fade-up">
+                        <div className="rounded-[15px] bg-white px-5 py-4 dark:bg-bhas-950">
+                            <p className="text-sm font-bold"><span className="bhas-gradient-text">Welcome back, {me.name.split(' ')[0]}!</span></p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">What's happening today?</p>
+                        </div>
+                    </div>
                     <StoryBar />
                     <Composer />
                     <InfiniteFeed />

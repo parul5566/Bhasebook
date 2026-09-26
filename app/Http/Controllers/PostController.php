@@ -473,9 +473,14 @@ class PostController extends Controller
         $post->increment('view_count');
         $post->load(['media', 'pollOptions.votes', 'reactions', 'saves', 'tags', 'user:id,name,avatar', 'page:id,name,avatar', 'group:id,name', 'sharedPost.media', 'sharedPost.user:id,name,avatar', 'sharedPost.page:id,name,avatar']);
 
-        return \Inertia\Inertia::render('Posts/Show', [
-            'post' => self::serializePost($post, $me),
-        ]);
+        $payload = ['post' => self::serializePost($post, $me)];
+
+        // API (token) clients get pure JSON; browser gets the Inertia page.
+        if ($request->expectsJson()) {
+            return response()->json($payload);
+        }
+
+        return \Inertia\Inertia::render('Posts/Show', $payload);
     }
 
     // ---------- Hashtags & memories ----------

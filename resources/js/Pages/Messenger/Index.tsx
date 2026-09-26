@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useEffect, useRef, useState } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { UserAvatar, type BasicUser } from '@/Pages/Profile/Show';
 import { ChevronLeftIcon, MoreIcon, PaperclipIcon, SearchIcon, SendIcon, SmileyIcon, XIcon } from '@/Components/Icons';
 
@@ -386,9 +387,17 @@ function Bubble({ msg, me, onReact, onReply, onEdit, onDelete }: {
     const [showActions, setShowActions] = useState(false);
     const [editing, setEditing] = useState(false);
     const [editText, setEditText] = useState(msg.body ?? '');
+    const reduce = useReducedMotion();
 
     return (
-        <div className={`group flex gap-2 ${msg.mine ? 'flex-row-reverse' : ''}`}>
+        <motion.div
+            className={`group flex gap-2 ${msg.mine ? 'flex-row-reverse' : ''}`}
+            {...(reduce ? {} : {
+                initial: { opacity: 0, y: 8, scale: 0.97 },
+                animate: { opacity: 1, y: 0, scale: 1 },
+                transition: { duration: 0.2, ease: 'easeOut' as const },
+            })}
+        >
             {!msg.mine && <UserAvatar user={msg.sender ?? { id: 0, name: '?', avatar_url: null, hue: 0 }} size={28} />}
             <div className={`relative max-w-[78%] ${msg.mine ? 'items-end' : 'items-start'}`}>
                 {msg.reply_to && (
@@ -451,7 +460,7 @@ function Bubble({ msg, me, onReact, onReply, onEdit, onDelete }: {
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 }
 

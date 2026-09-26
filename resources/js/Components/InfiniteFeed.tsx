@@ -57,17 +57,17 @@ export default function InfiniteFeed() {
         return (
             <div className="space-y-4">
                 {[0, 1, 2].map((i) => (
-                    <div key={i} className="bhas-card animate-pulse p-4">
+                    <div key={i} className="bhas-card p-4">
                         <div className="flex items-center gap-3">
-                            <div className="h-11 w-11 rounded-full bg-bhas-100 dark:bg-bhas-800" />
+                            <div className="bhas-skeleton h-11 w-11 rounded-full" />
                             <div className="flex-1 space-y-2">
-                                <div className="h-3 w-32 rounded bg-bhas-100 dark:bg-bhas-800" />
-                                <div className="h-2.5 w-20 rounded bg-bhas-100 dark:bg-bhas-800" />
+                                <div className="bhas-skeleton h-3 w-32 rounded" />
+                                <div className="bhas-skeleton h-2.5 w-20 rounded" />
                             </div>
                         </div>
                         <div className="mt-4 space-y-2">
-                            <div className="h-3 w-full rounded bg-bhas-100 dark:bg-bhas-800" />
-                            <div className="h-3 w-2/3 rounded bg-bhas-100 dark:bg-bhas-800" />
+                            <div className="bhas-skeleton h-3 w-full rounded" />
+                            <div className="bhas-skeleton h-3 w-2/3 rounded" />
                         </div>
                     </div>
                 ))}
@@ -93,12 +93,12 @@ export default function InfiniteFeed() {
             )}
             <div ref={sentinel} />
             {loading && (
-                <div className="bhas-card animate-pulse p-4">
+                <div className="bhas-card p-4">
                     <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-full bg-bhas-100 dark:bg-bhas-800" />
+                        <div className="bhas-skeleton h-11 w-11 rounded-full" />
                         <div className="flex-1 space-y-2">
-                            <div className="h-3 w-32 rounded bg-bhas-100 dark:bg-bhas-800" />
-                            <div className="h-2.5 w-20 rounded bg-bhas-100 dark:bg-bhas-800" />
+                            <div className="bhas-skeleton h-3 w-32 rounded" />
+                            <div className="bhas-skeleton h-2.5 w-20 rounded" />
                         </div>
                     </div>
                 </div>

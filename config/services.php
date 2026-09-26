@@ -41,4 +41,11 @@ return [
         ],
     ],
 
+    // Firebase Cloud Messaging (push notifications). Credentials come from
+    // the FIREBASE_CREDENTIALS env var (path to service-account JSON, or the
+    // JSON itself). Push is disabled (silently skipped) when empty.
+    'firebase' => [
+        'credentials' => env('FIREBASE_CREDENTIALS'),
+    ],
+
 ];

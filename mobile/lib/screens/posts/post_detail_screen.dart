@@ -51,7 +51,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     setState(() => _sending = true);
     try {
       await ApiClient.instance
-          .post('/posts/${widget.postId}/comments', {'text': text});
+          .post('/posts/${widget.postId}/comments', {'content': text});
       _commentController.clear();
       final comments =
           await ApiClient.instance.get('/posts/${widget.postId}/comments');

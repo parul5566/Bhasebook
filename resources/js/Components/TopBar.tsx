@@ -27,7 +27,7 @@ export default function TopBar({
                 <Link href={route('notifications.index')} className="bhas-icon-btn relative" aria-label="Notifications">
                     <BellIcon className="h-5 w-5" />
                     {unreadNotifications > 0 && (
-                        <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+                        <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-red-500 px-1 text-[10px] font-bold text-white shadow-glow-sm motion-safe:animate-badge-bounce">
                             {unreadNotifications > 9 ? '9+' : unreadNotifications}
                         </span>
                     )}
@@ -35,7 +35,7 @@ export default function TopBar({
                 <Link href={route('messenger.index')} className="bhas-icon-btn relative" aria-label="Messenger">
                     <MessengerIcon className="h-5 w-5" />
                     {unreadMessages > 0 && (
-                        <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+                        <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-red-500 px-1 text-[10px] font-bold text-white shadow-glow-sm motion-safe:animate-badge-bounce">
                             {unreadMessages > 9 ? '9+' : unreadMessages}
                         </span>
                     )}

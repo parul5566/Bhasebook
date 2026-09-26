@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { UserAvatar, type BasicUser } from '@/Pages/Profile/Show';
 import { PlusIcon, XIcon, ChevronLeftIcon, ChevronRightIcon, PlayIcon } from '@/Components/Icons';
 import { usePage } from '@inertiajs/react';
@@ -42,6 +43,7 @@ async function api(url: string, method = 'POST', body?: FormData | Record<string
 }
 
 export default function StoryBar({ onOpenComposer, onView }: { onOpenComposer?: () => void; onView?: (groups: StoryGroup[], index: number) => void } = {}) {
+    const reduceMotion = useReducedMotion();
     const [tray, setTray] = useState<StoryGroup[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewer, setViewer] = useState<{ group: number; index: number } | null>(null);
@@ -74,19 +76,26 @@ export default function StoryBar({ onOpenComposer, onView }: { onOpenComposer?: 
                 </button>
 
                 {loading
-                    ? [0, 1, 2, 3, 4].map((i) => <div key={i} className="h-16 w-16 shrink-0 animate-pulse rounded-full bg-bhas-100 dark:bg-bhas-800" />)
+                    ? [0, 1, 2, 3, 4].map((i) => <div key={i} className="bhas-skeleton h-16 w-16 shrink-0 rounded-full" />)
                     : tray.map((t, i) => (
-                        <button key={t.user.id} type="button" onClick={() => {
+                        <motion.button key={t.user.id} type="button" onClick={() => {
                             if (onView) onView(tray, i);
                             else setViewer({ group: i, index: 0 });
-                        }} className="shrink-0">
+                        }} className="shrink-0"
+                            initial={false}
+                            {...(reduceMotion ? {} : {
+                                initial: { opacity: 0, scale: 0.7 },
+                                animate: { opacity: 1, scale: 1 },
+                                transition: { delay: i * 0.05, type: 'spring' as const, stiffness: 300, damping: 20 },
+                            })}
+                        >
                             <span className={`block rounded-full p-[3px] ${t.seen ? 'bg-slate-300 dark:bg-bhas-700' : 'bg-gradient-to-tr from-amber-400 via-rose-500 to-fuchsia-600'}`}>
                                 <span className="block rounded-full border-2 border-white dark:border-bhas-950">
                                     <UserAvatar user={t.user} size={58} />
                                 </span>
                             </span>
                             <p className="mt-1 w-16 truncate text-center text-[10px] font-semibold">{t.user.name.split(' ')[0]}</p>
-                        </button>
+                        </motion.button>
                     ))}
                 {!loading && tray.length === 0 && (
                     <p className="flex items-center px-2 text-xs text-slate-400">No stories yet — add friends to see theirs!</p>

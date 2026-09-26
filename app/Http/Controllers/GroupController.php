@@ -74,6 +74,9 @@ class GroupController extends Controller
 
         $group->members()->attach($me->id, ['role' => 'owner', 'status' => 'active']);
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Group created.', 'ok' => true, 'id' => $group->id]);
+        }
         return redirect()->route('groups.show', ['group' => $group->id]);
     }
 
@@ -133,10 +136,19 @@ class GroupController extends Controller
         $me = $request->user();
         $existing = $group->members()->where('user_id', $me->id)->first();
         if ($existing) {
-            return back();
+            if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
+        return back();
         }
         $active = ! $group->requires_approval;
         $group->members()->attach($me->id, ['role' => 'member', 'status' => $active ? 'active' : 'pending']);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $active ? 'Joined the group!' : 'Request sent — waiting for approval.',
+                'ok' => true, 'active' => $active,
+            ]);
+        }
         return back()->with('status', $active ? 'Joined the group!' : 'Request sent — waiting for approval.');
     }
 
@@ -144,6 +156,9 @@ class GroupController extends Controller
     {
         $me = $request->user();
         $group->members()->detach($me->id);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'You left the group.', 'ok' => true]);
+        }
         return redirect()->route('groups.index');
     }
 
@@ -153,6 +168,9 @@ class GroupController extends Controller
         $this->requireAdmin($group, $me);
         $group->members()->updateExistingPivot($user->id, ['status' => 'active']);
         SocialService::notify($user, $me, 'group_invite', 'group', $group, "approved your request to join {$group->name}");
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back();
     }
 
@@ -163,6 +181,9 @@ class GroupController extends Controller
         $member = $group->members()->where('user_id', $user->id)->first();
         abort_if($member && $member->pivot->role === 'owner', 403, 'Owner cannot be removed.');
         $group->members()->detach($user->id);
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back();
     }
 
@@ -173,6 +194,9 @@ class GroupController extends Controller
         $data = $request->validate(['role' => 'required|in:admin,member']);
         abort_if($this->isOwner($group, $user), 403, "The owner's role cannot be changed.");
         $group->members()->updateExistingPivot($user->id, ['role' => $data['role']]);
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back();
     }
 
@@ -190,6 +214,9 @@ class GroupController extends Controller
             );
             SocialService::notify($target, $me, 'group_invite', 'group', $group, "invited you to join {$group->name}");
         }
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back();
     }
 
@@ -206,6 +233,9 @@ class GroupController extends Controller
             }
         } else {
             $invite->update(['status' => 'declined']);
+        }
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
         }
         return back();
     }
@@ -226,6 +256,9 @@ class GroupController extends Controller
             $data['cover'] = $request->file('cover')->store('groups', 'public');
         }
         $group->update(array_filter($data, fn ($v) => $v !== null));
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back();
     }
 

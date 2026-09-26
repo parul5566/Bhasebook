@@ -90,12 +90,18 @@ class FriendController extends Controller
     public function request(Request $request, User $user)
     {
         $res = SocialService::sendFriendRequest($request->user(), $user);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $res['message'], 'ok' => $res['ok']], $res['ok'] ? 200 : 422);
+        }
         return back()->with($res['ok'] ? 'status' : 'error', $res['message']);
     }
 
     public function accept(Request $request, User $user)
     {
         $res = SocialService::acceptFriendRequest($request->user(), $user->id);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $res['message'], 'ok' => $res['ok']], $res['ok'] ? 200 : 422);
+        }
         return back()->with($res['ok'] ? 'status' : 'error', $res['message']);
     }
 
@@ -103,6 +109,9 @@ class FriendController extends Controller
     {
         Friendship::where('user_id', $user->id)->where('friend_id', $request->user()->id)
             ->where('status', 'pending')->delete();
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Request declined.', 'ok' => true]);
+        }
         return back()->with('status', 'Request declined.');
     }
 
@@ -110,24 +119,36 @@ class FriendController extends Controller
     {
         Friendship::where('user_id', $request->user()->id)->where('friend_id', $user->id)
             ->where('status', 'pending')->delete();
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Request cancelled.', 'ok' => true]);
+        }
         return back()->with('status', 'Request cancelled.');
     }
 
     public function unfriend(Request $request, User $user)
     {
         $res = SocialService::removeFriendship($request->user(), $user->id);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $res['message'], 'ok' => true]);
+        }
         return back()->with('status', $res['message']);
     }
 
     public function toggleFollow(Request $request, User $user)
     {
         $res = SocialService::toggleFollow($request->user(), $user);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $res['message'], 'ok' => true]);
+        }
         return back()->with('status', $res['message']);
     }
 
     public function toggleBlock(Request $request, User $user)
     {
         $res = SocialService::toggleBlock($request->user(), $user);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $res['message'], 'ok' => true]);
+        }
         return back()->with('status', $res['message']);
     }
 

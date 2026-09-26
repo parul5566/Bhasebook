@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { UserAvatar, type BasicUser } from '@/Pages/Profile/Show';
 import { REACTIONS } from '@/Components/PostCard';
 import { BookmarkIcon, CommentIcon, SendIcon, XIcon } from '@/Components/Icons';
@@ -67,7 +68,7 @@ export default function ReelsIndex() {
             <div className="mx-auto max-w-[420px]">
                 {!loaded && !error && (
                     <div className="flex h-[60vh] items-center justify-center text-sm text-slate-400">
-                        <div className="animate-pulse">Loading reels…</div>
+                        <div className="bhas-skeleton h-10 w-40">Loading reels…</div>
                     </div>
                 )}
                 {loaded && reels.length === 0 && !error && (
@@ -109,6 +110,18 @@ function Observer({ onVisible }: { onVisible: () => void }) {
 function ReelItem({ reel, update }: { reel: Reel; update: (id: number, patch: Partial<Reel>) => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [showReact, setShowReact] = useState(false);
+    const [burst, setBurst] = useState(0);
+    const reduce = useReducedMotion();
+    const lastTap = useRef(0);
+
+    const onVideoTap = () => {
+        const now = Date.now();
+        if (now - lastTap.current < 300 && reel.my_reaction === null) {
+            setBurst((b) => b + 1);
+            void react('like');
+        }
+        lastTap.current = now;
+    };
 
     useEffect(() => {
         const el = videoRef.current;
@@ -150,7 +163,7 @@ function ReelItem({ reel, update }: { reel: Reel; update: (id: number, patch: Pa
     const video = reel.media.find((m) => m.kind === 'video') ?? reel.media[0];
 
     return (
-        <div className="snap-start-always relative h-[calc(100vh-8rem)] w-full overflow-hidden rounded-2xl bg-black">
+        <div className="snap-start-always relative h-[calc(100vh-8rem)] w-full overflow-hidden rounded-2xl bg-black" onDoubleClick={onVideoTap}>
             {video && (
                 <video
                     ref={videoRef}
@@ -161,6 +174,20 @@ function ReelItem({ reel, update }: { reel: Reel; update: (id: number, patch: Pa
                     className="h-full w-full object-contain"
                 />
             )}
+            {/* Heart burst on double-tap */}
+            <AnimatePresence>
+                {burst > 0 && !reduce && (
+                    <motion.span
+                        key={burst}
+                        className="pointer-events-none absolute inset-0 m-auto h-24 w-24 text-center text-7xl"
+                        initial={{ opacity: 0, scale: 0.3 }}
+                        animate={{ opacity: [0, 1, 1, 0], scale: [0.3, 1.3, 1, 1.5], rotate: [-8, 8, -4, 0] }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                    >
+                        ❤️
+                    </motion.span>
+                )}
+            </AnimatePresence>
             {/* Overlay gradient */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 to-transparent" />
 

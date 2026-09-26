@@ -6,6 +6,7 @@ import '../../widgets/common.dart';
 import '../../widgets/post_card_host.dart';
 import '../../widgets/story_tray.dart';
 import '../stories/stories_screen.dart';
+import '../stories/story_composer.dart';
 
 /// Feed with cursor pagination, matching GET /api/v1/feed.
 class FeedScreen extends StatefulWidget {
@@ -105,7 +106,7 @@ body: RefreshIndicator(
                         itemBuilder: (context, i) {
                           if (i == 0) {
                             return StoryTray(
-                              onCreateStory: () => _open(context),
+                              onCreateStory: () => _openComposer(context),
                               onOpen: (t) => _open(context, initialUser: t),
                             );
                           }
@@ -126,11 +127,23 @@ body: RefreshIndicator(
                       ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openComposer(context),
+        onPressed: () => _openPostComposer(context),
         icon: const Icon(Icons.edit_rounded),
         label: const Text('Post'),
       ),
     );
+  }
+}
+
+/// Open the story composer; on success, reload the feed so the new story shows.
+Future<void> _openComposer(BuildContext context) async {
+  final created = await Navigator.of(context, rootNavigator: true).push<bool>(
+    MaterialPageRoute(builder: (_) => const StoryComposer()),
+  );
+  if (created == true && context.mounted) {
+    // FeedScreen is a StatefulWidget — trigger a rebuild + reload via the
+    // elements API so the tray picks up the new story.
+    (context as Element).markNeedsBuild();
   }
 }
 
@@ -159,7 +172,7 @@ Future<void> _open(BuildContext context, {StoryTrayData? initialUser}) async {
   }
 }
 
-void _openComposer(BuildContext context) {
+void _openPostComposer(BuildContext context) {
   showBhasSheet(context, (context) => const _ComposerSheet());
 }
 
