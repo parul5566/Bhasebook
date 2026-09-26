@@ -149,7 +149,7 @@ class SocialService
         if ($actor && $for->id === $actor->id) {
             return; // don't self-notify
         }
-        SiteNotification::create([
+        $n = SiteNotification::create([
             'user_id' => $for->id,
             'actor_id' => $actor?->id,
             'type' => $type,
@@ -158,5 +158,13 @@ class SocialService
             'notifiable_id' => $notifiable?->getKey() ?? null,
             'data' => json_encode(['text' => $text]),
         ]);
+
+        // Fire an FCM push for this notification (no-op when push isn't
+        // configured or the user muted this category).
+        try {
+            \App\Services\PushService::pushNotification($n);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }

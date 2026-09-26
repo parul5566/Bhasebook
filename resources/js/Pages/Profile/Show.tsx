@@ -1,7 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { CheckIcon, PlusIcon, SendIcon, XIcon } from '@/Components/Icons';
 
 export type BasicUser = {
@@ -136,6 +136,33 @@ export default function Show({ profileUser, relation, friends, posts }: {
     posts: unknown[];
 }) {
     const flash = usePage().props as { status?: string; error?: string };
+    const me = usePage().props.auth.user as unknown as { name: string; email: string };
+    const { post: inertiaPost, processing: uploading } = useForm();
+    const avatarInput = useRef<HTMLInputElement>(null);
+    const coverInput = useRef<HTMLInputElement>(null);
+
+    const uploadPhoto = (kind: 'avatar' | 'cover', file: File | undefined) => {
+        if (!file) return;
+        if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+            alert('Please choose a JPG, PNG or WebP image.');
+            return;
+        }
+        if (file.size > (kind === 'avatar' ? 4 : 8) * 1024 * 1024) {
+            alert(`Image too large — max ${kind === 'avatar' ? 4 : 8} MB.`);
+            return;
+        }
+        router.post(route('profile.update'), {
+            [kind]: file,
+            _method: 'patch',
+            name: profileUser.name,
+            email: me.email,
+        }, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => window.location.reload(),
+        });
+    };
+
     return (
         <AuthenticatedLayout title={profileUser.name}>
             <div className="mx-auto max-w-4xl">
@@ -145,14 +172,56 @@ export default function Show({ profileUser, relation, friends, posts }: {
                     </div>
                 )}
                 <div className="bhas-card overflow-hidden">
-                    <div className="relative h-40 bg-gradient-to-r from-bhas-300 to-bhas-500 md:h-56">
+                    <div className="group relative h-40 bg-gradient-to-r from-bhas-300 to-bhas-500 md:h-56">
                         {profileUser.cover_url && (
                             <img src={profileUser.cover_url} alt="" className="h-full w-full object-cover" />
+                        )}
+                        {relation.is_me && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => coverInput.current?.click()}
+                                    disabled={uploading}
+                                    className="absolute bottom-3 right-3 rounded-lg bg-black/50 px-3 py-1.5 text-xs font-semibold text-white opacity-0 backdrop-blur transition group-hover:opacity-100 hover:bg-black/70 disabled:opacity-50"
+                                >
+                                    {uploading ? 'Uploading…' : '📷 Edit cover'}
+                                </button>
+                                <input
+                                    ref={coverInput}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    className="hidden"
+                                    onChange={(e) => uploadPhoto('cover', e.target.files?.[0])}
+                                />
+                            </>
                         )}
                     </div>
                     <div className="relative px-4 pb-4">
                         <div className="-mt-12 mb-3 flex items-end justify-between">
-                            <UserAvatar user={profileUser} size={96} />
+                            <div className="relative">
+                                <UserAvatar user={profileUser} size={96} />
+                                {relation.is_me && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => avatarInput.current?.click()}
+                                            disabled={uploading}
+                                            className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-bhas-600 text-white shadow-glow-sm transition hover:bg-bhas-700 disabled:opacity-50"
+                                            aria-label="Change profile photo"
+                                            title="Change profile photo"
+                                        >
+                                            📷
+                                        </button>
+                                        <input
+                                            ref={avatarInput}
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            className="hidden"
+                                            onChange={(e) => uploadPhoto('avatar', e.target.files?.[0])}
+                                        />
+                                    </>
+                                )}
+                            </div>
                             <div className="flex gap-2 pb-1">
                                 <RelationButtons user={profileUser} relation={relation} />
                             </div>

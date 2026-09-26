@@ -72,6 +72,9 @@ class NotificationController extends Controller
         } else {
             SiteNotification::where('user_id', $me->id)->whereNull('read_at')->update(['read_at' => now()]);
         }
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back();
     }
 
@@ -88,6 +91,9 @@ class NotificationController extends Controller
         ]);
         $prefs = array_intersect_key($data['prefs'], array_flip(self::CATEGORIES));
         $request->user()->forceFill(['notification_prefs' => $prefs])->save();
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back();
     }
 

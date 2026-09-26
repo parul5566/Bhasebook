@@ -145,6 +145,9 @@ class ProfileController extends Controller
             $me->save();
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Profile updated.', 'ok' => true]);
+        }
         return redirect()->route('profile.edit')->with('status', 'Profile updated.');
     }
 

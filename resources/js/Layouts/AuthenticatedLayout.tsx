@@ -1,5 +1,6 @@
 import TopBar from '@/Components/TopBar';
 import MobileNav from '@/Components/MobileNav';
+import PageTransition from '@/Components/PageTransition';
 import { usePage } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
 
@@ -17,7 +18,8 @@ export default function AuthenticatedLayout({ children, title }: { children: Rea
                 unreadNotifications={props.unread_notifications ?? 0}
                 unreadMessages={props.unread_messages ?? 0}
             />
-            <main className="mx-auto max-w-7xl px-2 py-4 md:px-4">{children}</main>
+            <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-0 h-1 bg-gradient-to-r from-bhas-500 via-purple-500 to-fuchsia-500" />
+            <main className="mx-auto max-w-7xl px-2 py-4 md:px-4"><PageTransition>{children}</PageTransition></main>
             <MobileNav />
         </div>
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../state/auth_state.dart';
+import '../../widgets/offline_banner.dart';
 
 /// Bottom navigation shell — Feed / Reels / Watch / Notifications / Profile.
 /// Mirrors the web app's sidebar navigation destinations.
@@ -27,7 +28,7 @@ class HomeShell extends StatelessWidget {
     if (index < 0) index = 0;
 
     return Scaffold(
-      body: child,
+      body: OfflineBanner(child: child),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
         onDestinationSelected: (i) => context.go(_tabs[i].$1),

@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef, useState, useTransition } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { UserAvatar, type BasicUser } from '@/Pages/Profile/Show';
 import {
     BookmarkIcon, CommentIcon, FlagIcon, GlobeIcon, LockIcon, MapPinIcon, MoreIcon,
@@ -78,12 +79,15 @@ export default function PostCard({ post: initial, onDeleted }: { post: Serialize
     const [editing, setEditing] = useState(false);
     const [editText, setEditText] = useState(post.content ?? '');
     const [reporting, setReporting] = useState(false);
+    const [reactionPop, setReactionPop] = useState(0);
     const reactTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const reduceMotion = useReducedMotion();
 
     useEffect(() => () => { if (reactTimer.current) clearTimeout(reactTimer.current); }, []);
 
     const react = async (type: string) => {
         setShowReactions(false);
+        setReactionPop((n) => n + 1);
         try {
             const res = await api(route('posts.react', { post: post.id }), 'POST', { type });
             setPost((p) => ({ ...p, reaction_counts: res.reaction_counts, reaction_total: res.reaction_total, my_reaction: res.my_reaction }));
@@ -139,7 +143,15 @@ export default function PostCard({ post: initial, onDeleted }: { post: Serialize
     const inner = post.shared_post;
 
     return (
-        <article className="bhas-card p-4">
+        <motion.article
+            className="bhas-card p-4"
+            {...(reduceMotion ? {} : {
+                initial: { opacity: 0, y: 14 },
+                whileInView: { opacity: 1, y: 0 },
+                viewport: { once: true, margin: '0px 0px -40px 0px' },
+                transition: { duration: 0.3, ease: 'easeOut' as const },
+            })}
+        >
             <header className="flex items-start gap-3">
                 {post.author && (
                     <Link href={post.author.type === 'page' ? route('pages.show', { page: post.author.id }) : route('profile.show', { user: post.author.id })}>
@@ -325,23 +337,55 @@ export default function PostCard({ post: initial, onDeleted }: { post: Serialize
                         onClick={() => react(post.my_reaction ?? 'like')}
                         onMouseEnter={() => { reactTimer.current = setTimeout(() => setShowReactions(true), 350); }}
                         onMouseLeave={() => { if (reactTimer.current) clearTimeout(reactTimer.current); }}
-                        className={`flex w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition hover:bg-bhas-50 dark:hover:bg-bhas-800 ${myReactionMeta ? myReactionMeta.color : 'text-slate-500 dark:text-slate-400'}`}
+                        className={`relative flex w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition hover:bg-bhas-50 dark:hover:bg-bhas-800 ${myReactionMeta ? myReactionMeta.color : 'text-slate-500 dark:text-slate-400'}`}
                     >
-                        {myReactionMeta ? <span>{myReactionMeta.emoji}</span> : <SmileyIcon className="h-5 w-5" />}
+                        <AnimatePresence>
+                            {reactionPop > 0 && !reduceMotion && (
+                                <motion.span
+                                    key={reactionPop}
+                                    className="pointer-events-none absolute text-3xl"
+                                    initial={{ opacity: 0, scale: 0.3, y: 0 }}
+                                    animate={{ opacity: [0, 1, 1, 0], scale: [0.3, 1.3, 1, 1.5], y: [0, -6, -10, -34] }}
+                                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                                >
+                                    {myReactionMeta?.emoji ?? '👍'}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                        <motion.span
+                            key={reactionPop}
+                            className="inline-flex"
+                            {...(reduceMotion ? {} : {
+                                initial: { scale: 1 },
+                                animate: { scale: [1, 1.35, 1] },
+                                transition: { duration: 0.3 },
+                            })}
+                        >
+                            {myReactionMeta ? myReactionMeta.emoji : <SmileyIcon className="h-5 w-5" />}
+                        </motion.span>
                         {myReactionMeta ? myReactionMeta.label : 'Like'}
                     </button>
                     {showReactions && (
-                        <div
+                        <motion.div
                             className="bhas-card absolute -top-14 left-0 z-30 flex gap-1 p-2 shadow-pop"
+                            initial={{ opacity: 0, y: 8, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ duration: 0.18, ease: 'easeOut' }}
                             onMouseEnter={() => setShowReactions(true)}
                             onMouseLeave={() => setShowReactions(false)}
                         >
-                            {REACTIONS.map((r) => (
-                                <button key={r.type} type="button" onClick={() => react(r.type)} className="rounded-full p-1 text-2xl transition hover:scale-125" title={r.label}>
+                            {REACTIONS.map((r, ri) => (
+                                <motion.button key={r.type} type="button" onClick={() => react(r.type)} className="rounded-full p-1 text-2xl transition hover:scale-125" title={r.label}
+                                    {...(reduceMotion ? {} : {
+                                        initial: { opacity: 0, y: 10, scale: 0.6 },
+                                        animate: { opacity: 1, y: 0, scale: 1 },
+                                        transition: { delay: ri * 0.04, duration: 0.2 },
+                                    })}
+                                >
                                     {r.emoji}
-                                </button>
+                                </motion.button>
                             ))}
-                        </div>
+                        </motion.div>
                     )}
                 </div>
                 <button type="button" onClick={() => setCommentsOpen((v) => !v)} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold text-slate-500 transition hover:bg-bhas-50 dark:text-slate-400 dark:hover:bg-bhas-800">
@@ -355,7 +399,7 @@ export default function PostCard({ post: initial, onDeleted }: { post: Serialize
 
             {commentsOpen && <CommentsSection postId={post.id} />}
             {reporting && <ReportModal reportableType="post" reportableId={post.id} onClose={() => setReporting(false)} />}
-        </article>
+        </motion.article>
     );
 }
 
@@ -531,7 +575,7 @@ function CommentsSection({ postId }: { postId: number }) {
             {replyTo && <p className="text-xs text-slate-400">Replying to comment #{replyTo} — <button type="button" className="underline" onClick={() => setReplyTo(null)}>cancel</button></p>}
             {loading ? (
                 <div className="space-y-2">
-                    {[0, 1].map((i) => <div key={i} className="h-10 animate-pulse rounded-xl bg-bhas-100 dark:bg-bhas-800" />)}
+                    {[0, 1].map((i) => <div key={i} className="bhas-skeleton h-10 rounded-xl" />)}
                 </div>
             ) : comments.length === 0 ? (
                 <p className="py-2 text-center text-sm text-slate-400">No comments yet — be the first!</p>

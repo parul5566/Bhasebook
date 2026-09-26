@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\ApiAuthController;
+use App\Http\Controllers\DeviceTokenController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\MessengerController;
@@ -35,6 +36,11 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('auth/me', [ApiAuthController::class, 'me']);
         Route::post('auth/logout', [ApiAuthController::class, 'logout']);
+
+        // Push device tokens
+        Route::post('devices', [DeviceTokenController::class, 'store']);
+        Route::delete('devices', [DeviceTokenController::class, 'destroy']);
+        Route::post('devices/remove', [DeviceTokenController::class, 'destroy']);
 
         // Feed & posts
         Route::get('feed', [PostController::class, 'feed']);

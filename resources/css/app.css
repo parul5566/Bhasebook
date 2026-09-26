@@ -19,22 +19,31 @@
 
 @layer components {
     .bhas-card {
-        @apply rounded-2xl bg-white shadow-card dark:bg-bhas-900/70;
+        @apply rounded-2xl bg-white shadow-card ring-1 ring-slate-900/5 transition-shadow hover:shadow-pop dark:bg-bhas-900/70 dark:ring-white/10;
+    }
+    .bhas-card-glass {
+        @apply rounded-2xl bg-white/70 shadow-card ring-1 ring-white/40 backdrop-blur-md dark:bg-bhas-900/50 dark:ring-white/10;
     }
     .bhas-btn {
-        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-bhas-500 disabled:opacity-50 disabled:cursor-not-allowed;
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-bhas-500 disabled:opacity-50 disabled:cursor-not-allowed motion-safe:hover:-translate-y-0.5 motion-safe:active:translate-y-0;
     }
     .bhas-btn-primary {
-        @apply bhas-btn bg-bhas-600 text-white hover:bg-bhas-700 active:bg-bhas-800;
+        @apply bhas-btn bg-gradient-to-r from-bhas-500 to-purple-500 text-white shadow-glow-sm hover:shadow-glow hover:from-bhas-600 hover:to-purple-600 active:from-bhas-700 active:to-purple-700;
     }
     .bhas-btn-ghost {
         @apply bhas-btn bg-bhas-100 text-bhas-800 hover:bg-bhas-200 dark:bg-bhas-800 dark:text-bhas-100 dark:hover:bg-bhas-700;
     }
     .bhas-btn-danger {
-        @apply bhas-btn bg-rose-600 text-white hover:bg-rose-700;
+        @apply bhas-btn bg-gradient-to-r from-rose-500 to-red-600 text-white shadow-glow-sm hover:shadow-glow hover:from-rose-600 hover:to-red-700;
+    }
+    .bhas-gradient-text {
+        @apply bg-gradient-to-r from-bhas-500 via-purple-500 to-fuchsia-500 bg-clip-text text-transparent;
+    }
+    .bhas-skeleton {
+        @apply relative overflow-hidden rounded-xl bg-slate-200/80 before:absolute before:inset-0 before:animate-shimmer before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent dark:bg-bhas-800/80 dark:before:via-white/10;
     }
     .bhas-input {
-        @apply w-full rounded-xl border-0 bg-bhas-100 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-bhas-500 dark:bg-bhas-900 dark:text-slate-100 dark:focus:bg-bhas-900 dark:focus:ring-bhas-400;
+        @apply w-full rounded-xl border-0 bg-bhas-100 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-transparent transition placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-bhas-500 dark:bg-bhas-900 dark:text-slate-100 dark:focus:bg-bhas-900 dark:focus:ring-bhas-400;
     }
     .bhas-label {
         @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400;
@@ -44,6 +53,9 @@
     }
     .bhas-scroll-x {
         @apply flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+    }
+    .bhas-ring-gradient {
+        background: linear-gradient(135deg, #3387fb, #7c5cff, #e34fd0);
     }
 }
 

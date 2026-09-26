@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { UserAvatar } from '@/Pages/Profile/Show';
 import { CheckIcon } from '@/Components/Icons';
 
@@ -35,6 +36,7 @@ const TABS = [
 const CATEGORIES = ['friend', 'reaction', 'comment', 'follow', 'group', 'page', 'message', 'general'] as const;
 
 export default function Index({ items, tab, unread, prefs }: Props) {
+    const reduce = useReducedMotion();
     const [localPrefs, setLocalPrefs] = useState(prefs);
     const [savedMsg, setSavedMsg] = useState('');
 
@@ -93,9 +95,16 @@ export default function Index({ items, tab, unread, prefs }: Props) {
                 )}
 
                 <div className="space-y-1">
-                    {items.map((n) => (
-                        <Link
+                    {items.map((n, i) => (
+                        <motion.div
                             key={n.id}
+                            {...(reduce ? {} : {
+                                initial: { opacity: 0, x: -10 },
+                                animate: { opacity: 1, x: 0 },
+                                transition: { delay: Math.min(i * 0.03, 0.4), duration: 0.25 },
+                            })}
+                        >
+                        <Link
                             href={n.href ?? '#'}
                             preserveScroll
                             className={`flex items-start gap-3 rounded-xl p-3 transition hover:bg-bhas-100 dark:hover:bg-bhas-800/60 ${!n.read ? 'bg-bhas-50 dark:bg-bhas-800/40' : ''}`}
@@ -108,8 +117,9 @@ export default function Index({ items, tab, unread, prefs }: Props) {
                                 </p>
                                 <p className="text-xs text-slate-400">{n.created_at}</p>
                             </div>
-                            {!n.read && <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-bhas-500" />}
+                            {!n.read && <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-bhas-500 motion-safe:animate-badge-bounce" />}
                         </Link>
+                        </motion.div>
                     ))}
                 </div>
 
